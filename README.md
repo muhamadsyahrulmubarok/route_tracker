@@ -31,6 +31,16 @@ Phone-friendly app: load the motorbike route, track GPS, and list nearby food, m
 python app.py
 ```
 
+Or with **PM2** (keeps the server running):
+
+```bash
+pm2 start ecosystem.config.cjs
+pm2 status
+pm2 logs geomaps
+pm2 restart geomaps
+pm2 stop geomaps
+```
+
 Open **http://127.0.0.1:5000** on your PC, or `http://<your-pc-lan-ip>:5000` on your phone (same Wi‑Fi).
 
 1. Tap ⚙ → confirm origin / destination → **Load route & places**

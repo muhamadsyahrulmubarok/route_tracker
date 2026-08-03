@@ -6,3 +6,5 @@ __pycache__/
 .venv/
 venv/
 *.mp4
+
+logs/
