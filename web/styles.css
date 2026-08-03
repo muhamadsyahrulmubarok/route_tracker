@@ -18,6 +18,7 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --topbar-h: calc(58px + var(--safe-top));
   --sheet-peek: 168px;
+  --sheet-collapsed: 56px;
   --tap: 48px;
 }
 
@@ -158,6 +159,24 @@ button {
 
 .settings.hidden { display: none; }
 
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.settings-head strong {
+  font-size: 0.95rem;
+}
+
+.ghost.small {
+  width: auto;
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 0.88rem;
+}
+
 .settings label {
   display: grid;
   gap: 6px;
@@ -212,9 +231,18 @@ button {
   touch-action: pan-x pan-y;
 }
 
-.leaflet-top.leaflet-right {
-  top: calc(var(--topbar-h) + 56px);
-  right: calc(10px + var(--safe-right));
+/* Zoom +/- sits above GPS FABs, clear of settings panel */
+.leaflet-bottom.leaflet-right {
+  right: calc(12px + var(--safe-right));
+  bottom: calc(var(--sheet-peek) + 130px + var(--safe-bottom));
+}
+
+#app.sheet-collapsed .leaflet-bottom.leaflet-right {
+  bottom: calc(var(--sheet-collapsed) + 130px + var(--safe-bottom));
+}
+
+#app.sheet-open .leaflet-bottom.leaflet-right {
+  bottom: calc(58vh + 130px);
 }
 
 .leaflet-control-zoom a {
@@ -227,6 +255,7 @@ button {
 
 .leaflet-control-zoom {
   border: 0 !important;
+  margin: 0 !important;
   box-shadow: var(--shadow) !important;
   border-radius: 12px !important;
   overflow: hidden;
@@ -237,6 +266,14 @@ button {
   max-width: 42vw;
   margin-bottom: calc(var(--sheet-peek) + 6px) !important;
   margin-right: 4px !important;
+}
+
+#app.sheet-collapsed .leaflet-control-attribution {
+  margin-bottom: calc(var(--sheet-collapsed) + 6px) !important;
+}
+
+#app.sheet-open .leaflet-control-attribution {
+  margin-bottom: calc(58vh + 6px) !important;
 }
 
 .leaflet-bottom {
@@ -287,6 +324,10 @@ button {
   gap: 10px;
   align-items: flex-end;
   transition: bottom 0.22s ease;
+}
+
+#app.sheet-collapsed .fab-stack {
+  bottom: calc(var(--sheet-collapsed) + 12px + var(--safe-bottom));
 }
 
 #app.sheet-open .fab-stack {
@@ -342,6 +383,11 @@ button {
   padding-right: calc(12px + var(--safe-right));
 }
 
+.sheet-collapsed {
+  height: calc(var(--sheet-collapsed) + var(--safe-bottom));
+  max-height: calc(var(--sheet-collapsed) + var(--safe-bottom));
+}
+
 .sheet-peek {
   height: calc(var(--sheet-peek) + var(--safe-bottom));
   max-height: calc(var(--sheet-peek) + var(--safe-bottom));
@@ -354,12 +400,15 @@ button {
 
 .sheet-handle-btn {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 6px;
   width: 100%;
-  min-height: 28px;
+  min-height: 36px;
   padding: 10px 0 6px;
   background: transparent;
+  touch-action: none;
 }
 
 .sheet-handle {
@@ -368,6 +417,29 @@ button {
   border-radius: 999px;
   background: #cbbfa8;
   display: block;
+}
+
+.sheet-collapsed-label {
+  display: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.sheet-collapsed .sheet-collapsed-label {
+  display: block;
+}
+
+.sheet-collapsed .sheet-body {
+  display: none;
+}
+
+.sheet-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .controls {
@@ -458,7 +530,8 @@ button {
   overscroll-behavior: contain;
 }
 
-.sheet-peek .nearby-list {
+.sheet-peek .nearby-list,
+.sheet-collapsed .nearby-list {
   display: none;
 }
 
@@ -554,10 +627,16 @@ button {
     max-height: min(70dvh, 640px);
   }
 
+  .sheet-collapsed,
   .sheet-peek,
   .sheet-expanded {
     height: auto;
     max-height: min(70dvh, 640px);
+  }
+
+  .sheet-collapsed {
+    height: calc(var(--sheet-collapsed) + var(--safe-bottom));
+    max-height: calc(var(--sheet-collapsed) + var(--safe-bottom));
   }
 
   .sheet-peek .nearby-list {
@@ -566,6 +645,7 @@ button {
   }
 
   .fab-stack,
+  #app.sheet-collapsed .fab-stack,
   #app.sheet-open .fab-stack {
     right: calc(16px + var(--safe-right) + min(400px, 42vw) + 12px);
     bottom: calc(24px + var(--safe-bottom));

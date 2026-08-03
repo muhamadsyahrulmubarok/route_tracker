@@ -27,7 +27,7 @@
     accuracyCircle: null,
     progress: null,
     followUser: true,
-    sheetExpanded: false,
+    sheetMode: "peek", // collapsed | peek | expanded
     expandedOnce: false,
   };
 
@@ -36,6 +36,7 @@
     statusText: document.getElementById("statusText"),
     settingsPanel: document.getElementById("settingsPanel"),
     btnSettings: document.getElementById("btnSettings"),
+    btnCloseSettings: document.getElementById("btnCloseSettings"),
     accessKeyInput: document.getElementById("accessKeyInput"),
     originInput: document.getElementById("originInput"),
     destinationInput: document.getElementById("destinationInput"),
@@ -51,6 +52,7 @@
     btnRecenter: document.getElementById("btnRecenter"),
     btnSheetToggle: document.getElementById("btnSheetToggle"),
     sheet: document.getElementById("sheet"),
+    sheetCollapsedLabel: document.getElementById("sheetCollapsedLabel"),
     nearbyCount: document.getElementById("nearbyCount"),
     nearbyList: document.getElementById("nearbyList"),
   };
@@ -59,7 +61,7 @@
     zoomControl: false,
     attributionControl: true,
   }).setView([-7.4, 109.8], 9);
-  L.control.zoom({ position: "topright" }).addTo(map);
+  L.control.zoom({ position: "bottomright" }).addTo(map);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: "&copy; OpenStreetMap",
@@ -143,16 +145,38 @@
     });
   }
 
-  function setSheetExpanded(expanded) {
-    state.sheetExpanded = expanded;
-    el.sheet.classList.toggle("sheet-peek", !expanded);
-    el.sheet.classList.toggle("sheet-expanded", expanded);
-    el.app.classList.toggle("sheet-open", expanded);
-    el.btnSheetToggle.setAttribute(
-      "aria-label",
-      expanded ? "Collapse nearby list" : "Expand nearby list"
-    );
+  function updateCollapsedLabel(count) {
+    if (!el.sheetCollapsedLabel) return;
+    const n = count == null ? el.nearbyCount?.textContent || "0" : String(count);
+    el.sheetCollapsedLabel.textContent = `Nearby ${n} · tap to open`;
+  }
+
+  function setSheetMode(mode) {
+    const next = ["collapsed", "peek", "expanded"].includes(mode) ? mode : "peek";
+    state.sheetMode = next;
+    el.sheet.classList.toggle("sheet-collapsed", next === "collapsed");
+    el.sheet.classList.toggle("sheet-peek", next === "peek");
+    el.sheet.classList.toggle("sheet-expanded", next === "expanded");
+    el.app.classList.toggle("sheet-collapsed", next === "collapsed");
+    el.app.classList.toggle("sheet-open", next === "expanded");
+    const labels = {
+      collapsed: "Show nearby panel",
+      peek: "Expand nearby list",
+      expanded: "Hide nearby panel",
+    };
+    el.btnSheetToggle.setAttribute("aria-label", labels[next]);
+    updateCollapsedLabel();
     refreshMapLayout();
+  }
+
+  function setSettingsOpen(open) {
+    el.settingsPanel.classList.toggle("hidden", !open);
+    el.btnSettings.setAttribute("aria-expanded", String(open));
+    el.btnSettings.setAttribute(
+      "aria-label",
+      open ? "Hide trip settings" : "Show trip settings"
+    );
+    el.btnSettings.textContent = open ? "✕" : "⚙";
   }
 
   function saveCache() {
@@ -300,6 +324,7 @@
     state.placeLayer.clearLayers();
     if (!state.user) {
       el.nearbyCount.textContent = "0";
+      updateCollapsedLabel(0);
       el.nearbyList.innerHTML =
         '<li><div class="meta">Tap <strong>GPS</strong> to track your location, then swipe up for nearby places.</div></li>';
       return;
@@ -316,6 +341,7 @@
       .slice(0, 80);
 
     el.nearbyCount.textContent = String(nearby.length);
+    updateCollapsedLabel(nearby.length);
     el.nearbyList.innerHTML = "";
 
     if (!nearby.length) {
@@ -366,7 +392,7 @@
     renderNearby();
     if (!state.expandedOnce && state.places.length) {
       state.expandedOnce = true;
-      setSheetExpanded(true);
+      setSheetMode("peek");
     }
   }
 
@@ -449,9 +475,8 @@
     const step = Math.max(1, Math.floor(points.length / 200));
     el.btnSimulate.textContent = "Stop simulation";
     setStatus("Simulating along route");
-    el.settingsPanel.classList.add("hidden");
-    el.btnSettings.setAttribute("aria-expanded", "false");
-    setSheetExpanded(true);
+    setSettingsOpen(false);
+    setSheetMode("peek");
     state.simulateTimer = setInterval(() => {
       const pt = points[state.simulateIdx];
       onLocation(pt[0], pt[1], 25);
@@ -475,6 +500,10 @@
       state.route = route;
       state.progress = buildRouteProgress(route.points);
       drawRoute(route);
+      // Hide form as soon as the route is on the map (places can take a while).
+      setSettingsOpen(false);
+      el.progressMain.textContent = route.distanceText;
+      el.progressSub.textContent = `${route.durationText} · loading places…`;
       setStatus("Loading Google Places…");
       const placesResp = await postJson("/api/places", {
         points: route.points,
@@ -483,16 +512,15 @@
       });
       state.places = placesResp.places || [];
       saveCache();
-      el.settingsPanel.classList.add("hidden");
-      el.btnSettings.setAttribute("aria-expanded", "false");
       setStatus(
         `${route.distanceText} · ${state.places.length} places · tap GPS`
       );
-      el.progressMain.textContent = route.distanceText;
       el.progressSub.textContent = `${route.durationText} · ready for GPS`;
       renderNearby();
     } catch (err) {
       setStatus(err.message || "Failed to load trip");
+      // Keep settings open on error so the user can fix key/inputs.
+      setSettingsOpen(true);
     } finally {
       el.btnLoadRoute.disabled = false;
     }
@@ -518,17 +546,51 @@
   }
 
   el.btnSettings.addEventListener("click", () => {
-    el.settingsPanel.classList.toggle("hidden");
-    const isOpen = !el.settingsPanel.classList.contains("hidden");
-    el.btnSettings.setAttribute("aria-expanded", String(isOpen));
+    const open = el.settingsPanel.classList.contains("hidden");
+    setSettingsOpen(open);
   });
+  el.btnCloseSettings.addEventListener("click", () => setSettingsOpen(false));
   el.btnLoadRoute.addEventListener("click", loadTrip);
   el.btnTrack.addEventListener("click", startGps);
   el.btnSimulate.addEventListener("click", startSimulate);
   el.btnRecenter.addEventListener("click", recenter);
   el.btnSheetToggle.addEventListener("click", () => {
-    setSheetExpanded(!state.sheetExpanded);
+    // Tap: expanded -> collapsed (hide), otherwise open one step.
+    if (state.sheetMode === "expanded") setSheetMode("collapsed");
+    else if (state.sheetMode === "collapsed") setSheetMode("peek");
+    else setSheetMode("expanded");
   });
+
+  // Swipe on handle: down = hide, up = open more.
+  {
+    let startY = null;
+    el.btnSheetToggle.addEventListener(
+      "touchstart",
+      (ev) => {
+        startY = ev.changedTouches[0].clientY;
+      },
+      { passive: true }
+    );
+    el.btnSheetToggle.addEventListener(
+      "touchend",
+      (ev) => {
+        if (startY == null) return;
+        const dy = ev.changedTouches[0].clientY - startY;
+        startY = null;
+        if (Math.abs(dy) < 28) return;
+        if (dy > 0) {
+          // swipe down
+          if (state.sheetMode === "expanded") setSheetMode("peek");
+          else setSheetMode("collapsed");
+        } else {
+          // swipe up
+          if (state.sheetMode === "collapsed") setSheetMode("peek");
+          else setSheetMode("expanded");
+        }
+      },
+      { passive: true }
+    );
+  }
   el.radiusSelect.addEventListener("change", () => {
     state.radiusM = Number(el.radiusSelect.value) || 2000;
     renderNearby();
@@ -564,11 +626,12 @@
     /* ignore */
   }
 
-  setSheetExpanded(false);
+  setSheetMode("peek");
   if (!restoreFromCache()) {
-    el.settingsPanel.classList.remove("hidden");
-    el.btnSettings.setAttribute("aria-expanded", "true");
+    setSettingsOpen(true);
     setStatus("Set trip, then Load route & places");
+  } else {
+    setSettingsOpen(false);
   }
   refreshMapLayout();
 })();

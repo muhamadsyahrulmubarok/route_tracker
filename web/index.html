@@ -32,6 +32,10 @@
     </header>
 
     <section id="settingsPanel" class="settings hidden" aria-label="Trip settings">
+      <div class="settings-head">
+        <strong>Trip settings</strong>
+        <button type="button" id="btnCloseSettings" class="ghost small" aria-label="Hide settings">Hide</button>
+      </div>
       <label>App access key
         <input id="accessKeyInput" type="password" value="" autocomplete="off" enterkeyhint="next" placeholder="From .env APP_ACCESS_KEY" />
       </label>
@@ -64,34 +68,37 @@
     </div>
 
     <section class="sheet sheet-peek" id="sheet">
-      <button type="button" class="sheet-handle-btn" id="btnSheetToggle" aria-label="Expand nearby list">
+      <button type="button" class="sheet-handle-btn" id="btnSheetToggle" aria-label="Expand or hide nearby panel">
         <span class="sheet-handle" aria-hidden="true"></span>
+        <span class="sheet-collapsed-label" id="sheetCollapsedLabel">Nearby · tap to open</span>
       </button>
 
-      <div class="controls">
-        <div class="chips" id="categoryChips">
-          <button type="button" class="chip active" data-cat="food">Food</button>
-          <button type="button" class="chip active" data-cat="market">Market</button>
-          <button type="button" class="chip active" data-cat="beach">Beach</button>
-          <button type="button" class="chip active" data-cat="fuel">SPBU</button>
-          <button type="button" class="chip active" data-cat="interest">Interest</button>
-        </div>
-        <div class="toolbar">
-          <label class="radius-label">Radius
-            <select id="radiusSelect" aria-label="Search radius">
-              <option value="1000">1 km</option>
-              <option value="2000" selected>2 km</option>
-              <option value="5000">5 km</option>
-            </select>
-          </label>
-          <div class="list-head">
-            <h2>Nearby</h2>
-            <span id="nearbyCount">0</span>
+      <div class="sheet-body" id="sheetBody">
+        <div class="controls">
+          <div class="chips" id="categoryChips">
+            <button type="button" class="chip active" data-cat="food">Food</button>
+            <button type="button" class="chip active" data-cat="market">Market</button>
+            <button type="button" class="chip active" data-cat="beach">Beach</button>
+            <button type="button" class="chip active" data-cat="fuel">SPBU</button>
+            <button type="button" class="chip active" data-cat="interest">Interest</button>
+          </div>
+          <div class="toolbar">
+            <label class="radius-label">Radius
+              <select id="radiusSelect" aria-label="Search radius">
+                <option value="1000">1 km</option>
+                <option value="2000" selected>2 km</option>
+                <option value="5000">5 km</option>
+              </select>
+            </label>
+            <div class="list-head">
+              <h2>Nearby</h2>
+              <span id="nearbyCount">0</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <ul id="nearbyList" class="nearby-list"></ul>
+        <ul id="nearbyList" class="nearby-list"></ul>
+      </div>
     </section>
   </div>
 

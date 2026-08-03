@@ -1,4 +1,4 @@
-const SHELL = "geomaps-shell-v2";
+const SHELL = "geomaps-shell-v5";
 const ASSETS = [
   "/",
   "/index.html",
