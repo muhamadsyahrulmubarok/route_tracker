@@ -3,8 +3,10 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_from_directory
 
 from geo_common import (
@@ -22,12 +24,55 @@ from geo_common import (
 ROOT = Path(__file__).resolve().parent
 WEB_DIR = ROOT / "web"
 
+load_dotenv(ROOT / ".env")
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
+
+
+def app_access_key() -> str:
+    return os.getenv("APP_ACCESS_KEY", "").strip()
+
+
+def require_app_access() -> tuple | None:
+    """Return a Flask (response, status) if access is denied; else None."""
+    expected = app_access_key()
+    if not expected or expected in {"change_me_to_a_secret", "your_app_access_key_here"}:
+        # Unconfigured key: allow (local/dev). Set a real APP_ACCESS_KEY to lock down.
+        return None
+    provided = (
+        request.headers.get("X-App-Key")
+        or request.args.get("app_key")
+        or ""
+    ).strip()
+    if provided != expected:
+        return jsonify({"error": "Invalid or missing APP_ACCESS_KEY (X-App-Key)"}), 401
+    return None
+
+
+@app.before_request
+def gate_api_access():
+    if not request.path.startswith("/api/"):
+        return None
+    if request.path == "/api/health":
+        return None
+    denied = require_app_access()
+    if denied is not None:
+        return denied
+    return None
 
 
 @app.get("/api/health")
 def health():
-    return jsonify({"ok": True, "service": "geomaps-companion"})
+    return jsonify(
+        {
+            "ok": True,
+            "service": "geomaps-companion",
+            "accessKeyRequired": bool(
+                app_access_key()
+                and app_access_key()
+                not in {"change_me_to_a_secret", "your_app_access_key_here"}
+            ),
+        }
+    )
 
 
 @app.post("/api/route")

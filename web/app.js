@@ -2,6 +2,7 @@
   "use strict";
 
   const CACHE_KEY = "geomaps-companion-v1";
+  const ACCESS_KEY_STORE = "geomaps-app-access-key";
   const OFF_ROUTE_M = 300;
   const CAT_COLORS = {
     food: "#b45309",
@@ -35,6 +36,7 @@
     statusText: document.getElementById("statusText"),
     settingsPanel: document.getElementById("settingsPanel"),
     btnSettings: document.getElementById("btnSettings"),
+    accessKeyInput: document.getElementById("accessKeyInput"),
     originInput: document.getElementById("originInput"),
     destinationInput: document.getElementById("destinationInput"),
     modeSelect: document.getElementById("modeSelect"),
@@ -178,10 +180,32 @@
     }
   }
 
+  function getAccessKey() {
+    const fromInput = (el.accessKeyInput?.value || "").trim();
+    if (fromInput) return fromInput;
+    try {
+      return (localStorage.getItem(ACCESS_KEY_STORE) || "").trim();
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function persistAccessKey() {
+    const key = (el.accessKeyInput?.value || "").trim();
+    try {
+      if (key) localStorage.setItem(ACCESS_KEY_STORE, key);
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
   async function postJson(url, body) {
+    const headers = { "Content-Type": "application/json" };
+    const accessKey = getAccessKey();
+    if (accessKey) headers["X-App-Key"] = accessKey;
     const resp = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(body),
     });
     const data = await resp.json().catch(() => ({}));
@@ -443,6 +467,7 @@
     const origin = el.originInput.value.trim();
     const destination = el.destinationInput.value.trim();
     const mode = el.modeSelect.value;
+    persistAccessKey();
     el.btnLoadRoute.disabled = true;
     setStatus("Fetching route…");
     try {
@@ -530,6 +555,13 @@
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }
+
+  try {
+    const savedKey = localStorage.getItem(ACCESS_KEY_STORE) || "";
+    if (el.accessKeyInput && savedKey) el.accessKeyInput.value = savedKey;
+  } catch (_) {
+    /* ignore */
   }
 
   setSheetExpanded(false);
