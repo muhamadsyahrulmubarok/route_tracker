@@ -381,6 +381,8 @@ button {
   transition: height 0.22s ease, max-height 0.22s ease;
   padding-left: calc(12px + var(--safe-left));
   padding-right: calc(12px + var(--safe-right));
+  overflow: hidden;
+  pointer-events: auto;
 }
 
 .sheet-collapsed {
@@ -394,8 +396,8 @@ button {
 }
 
 .sheet-expanded {
-  height: min(62dvh, 520px);
-  max-height: min(62dvh, 520px);
+  height: min(70dvh, 560px);
+  max-height: min(70dvh, 560px);
 }
 
 .sheet-handle-btn {
@@ -409,6 +411,7 @@ button {
   padding: 10px 0 6px;
   background: transparent;
   touch-action: none;
+  flex: 0 0 auto;
 }
 
 .sheet-handle {
@@ -437,8 +440,10 @@ button {
 .sheet-body {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1 1 auto;
+  /* height:0 + flex:1 forces a bounded box so children can scroll on mobile */
   min-height: 0;
+  height: 0;
   overflow: hidden;
 }
 
@@ -522,12 +527,19 @@ button {
 .nearby-list {
   list-style: none;
   margin: 8px 0 0;
-  padding: 0;
-  overflow: auto;
-  flex: 1;
+  padding: 0 0 8px;
+  flex: 1 1 auto;
   min-height: 0;
+  height: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+.sheet-expanded .nearby-list {
+  display: block;
 }
 
 .sheet-peek .nearby-list,
@@ -641,7 +653,14 @@ button {
 
   .sheet-peek .nearby-list {
     display: block;
+    height: auto;
     max-height: 280px;
+    flex: 1 1 auto;
+  }
+
+  .sheet-expanded .nearby-list {
+    height: 0;
+    max-height: none;
   }
 
   .fab-stack,

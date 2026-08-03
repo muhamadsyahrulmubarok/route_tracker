@@ -554,6 +554,22 @@
   el.btnTrack.addEventListener("click", startGps);
   el.btnSimulate.addEventListener("click", startSimulate);
   el.btnRecenter.addEventListener("click", recenter);
+
+  // Keep list scrolling on mobile — don't let the map steal vertical swipes.
+  el.nearbyList.addEventListener(
+    "touchmove",
+    (ev) => {
+      ev.stopPropagation();
+    },
+    { passive: true }
+  );
+  el.sheet.addEventListener(
+    "touchmove",
+    (ev) => {
+      if (ev.target.closest(".nearby-list")) ev.stopPropagation();
+    },
+    { passive: true }
+  );
   el.btnSheetToggle.addEventListener("click", () => {
     // Tap: expanded -> collapsed (hide), otherwise open one step.
     if (state.sheetMode === "expanded") setSheetMode("collapsed");

@@ -41,6 +41,31 @@ pm2 restart geomaps
 pm2 stop geomaps
 ```
 
+### Deploy / auto-restart on server
+
+After you push to GitHub (or your remote), on the **server**:
+
+```bash
+cd /path/to/geomaps
+chmod +x deploy.sh
+./deploy.sh
+```
+
+That runs `git pull`, installs deps if needed, then `pm2 restart ecosystem.config.cjs`.
+
+To restart automatically whenever you `git pull` on the server (one-time setup):
+
+```bash
+chmod +x scripts/install-git-hooks.sh
+bash scripts/install-git-hooks.sh
+```
+
+Then:
+
+```bash
+git pull   # post-merge hook → pm2 restart geomaps
+```
+
 Open **http://127.0.0.1:5000** on your PC, or `http://<your-pc-lan-ip>:5000` on your phone (same Wi‑Fi).
 
 1. Tap ⚙ → confirm origin / destination → **Load route & places**
