@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#0f3d2e" />
+  <meta name="color-scheme" content="light" />
+  <meta name="description" content="Track your ride and find food, markets, beaches nearby" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Companion" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>Route Companion</title>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div class="brand-text">
+          <h1>Route Companion</h1>
+          <p id="statusText">Load a route to start</p>
+        </div>
+      </div>
+      <button type="button" id="btnSettings" class="icon-btn" aria-label="Trip settings" aria-expanded="false">⚙</button>
+    </header>
+
+    <section id="settingsPanel" class="settings hidden" aria-label="Trip settings">
+      <label>Origin
+        <input id="originInput" type="text" value="Taman Rakyat Slawi" autocomplete="street-address" enterkeyhint="next" />
+      </label>
+      <label>Destination
+        <input id="destinationInput" type="text" value="Yogyakarta, Indonesia" autocomplete="street-address" enterkeyhint="done" />
+      </label>
+      <label>Mode
+        <select id="modeSelect">
+          <option value="motorbike" selected>Motorbike</option>
+          <option value="car">Car</option>
+        </select>
+      </label>
+      <button type="button" id="btnLoadRoute" class="primary">Load route &amp; places</button>
+      <button type="button" id="btnSimulate" class="ghost">Simulate along route</button>
+    </section>
+
+    <div id="map" role="application" aria-label="Route map"></div>
+
+    <div class="progress-chip" id="progressChip">
+      <strong id="progressMain">—</strong>
+      <span id="progressSub">Waiting for GPS</span>
+    </div>
+
+    <div class="fab-stack">
+      <button type="button" id="btnRecenter" class="fab" aria-label="Center on my location" title="My location">◎</button>
+      <button type="button" id="btnTrack" class="fab fab-primary" aria-label="Start GPS tracking">GPS</button>
+    </div>
+
+    <section class="sheet sheet-peek" id="sheet">
+      <button type="button" class="sheet-handle-btn" id="btnSheetToggle" aria-label="Expand nearby list">
+        <span class="sheet-handle" aria-hidden="true"></span>
+      </button>
+
+      <div class="controls">
+        <div class="chips" id="categoryChips">
+          <button type="button" class="chip active" data-cat="food">Food</button>
+          <button type="button" class="chip active" data-cat="market">Market</button>
+          <button type="button" class="chip active" data-cat="beach">Beach</button>
+          <button type="button" class="chip active" data-cat="fuel">SPBU</button>
+          <button type="button" class="chip active" data-cat="interest">Interest</button>
+        </div>
+        <div class="toolbar">
+          <label class="radius-label">Radius
+            <select id="radiusSelect" aria-label="Search radius">
+              <option value="1000">1 km</option>
+              <option value="2000" selected>2 km</option>
+              <option value="5000">5 km</option>
+            </select>
+          </label>
+          <div class="list-head">
+            <h2>Nearby</h2>
+            <span id="nearbyCount">0</span>
+          </div>
+        </div>
+      </div>
+
+      <ul id="nearbyList" class="nearby-list"></ul>
+    </section>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

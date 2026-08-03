@@ -1,0 +1,25 @@
+{
+  "name": "Route Companion",
+  "short_name": "Companion",
+  "description": "Track your ride and find nearby food, markets, beaches, and more",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#e8e0d0",
+  "theme_color": "#0f3d2e",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
